@@ -193,3 +193,4 @@ app.listen(PORT, () => {
   console.log(`Payment address: ${PAY_TO}`);
   console.log(`Network: Base mainnet (eip155:8453)`);
 });
+// trigger build Fri Feb 13 23:38:55 EST 2026
