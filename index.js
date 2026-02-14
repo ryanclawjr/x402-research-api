@@ -12,14 +12,9 @@ const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 // Get CDP API key from environment
 const CDP_API_KEY = process.env.CDP_API_KEY;
 
-// x402 facilitator configuration
-const facilitator = CDP_API_KEY ? {
-  url: "https://x402.org/facilitator",
-  createAuthHeaders: async () => ({
-    verify: { "x-cdp-api-key": CDP_API_KEY },
-    settle: { "x-cdp-api-key": CDP_API_KEY }
-  })
-} : undefined;
+// x402 facilitator - use default (x402.org) for now
+// TODO: Add CDP facilitator URL when found
+const facilitator = undefined;
 
 // x402 payment middleware
 const payment = paymentMiddleware(PAY_TO, {
