@@ -16,21 +16,21 @@ const facilitator = undefined;
 const payment = paymentMiddleware(PAY_TO, {
   "GET /api/search": {
     price: "$0.01",
-    network: "base",
+    network: "eip155:8453",
     config: {
       description: "Web search via Brave API - returns title, url, and snippet"
     }
   },
   "GET /api/fetch": {
     price: "$0.02",
-    network: "base", 
+    network: "eip155:8453", 
     config: {
       description: "Fetch and extract readable content from any URL"
     }
   },
   "GET /api/analyze-github": {
     price: "$0.05",
-    network: "base",
+    network: "eip155:8453",
     config: {
       description: "Deep-dive analysis of GitHub projects - architecture, community, competitive landscape"
     }
