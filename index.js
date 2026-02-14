@@ -12,9 +12,14 @@ const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 // Get CDP API key from environment
 const CDP_API_KEY = process.env.CDP_API_KEY;
 
-// x402 facilitator - use default (x402.org) for now
-// TODO: Add CDP facilitator URL when found
-const facilitator = undefined;
+// x402 facilitator - CDP for mainnet
+const facilitator = CDP_API_KEY ? {
+  url: "https://api.cdp.coinbase.com/platform",
+  createAuthHeaders: async () => ({
+    verify: { "x-api-key": CDP_API_KEY },
+    settle: { "x-api-key": CDP_API_KEY }
+  })
+} : undefined;
 
 // x402 payment middleware
 const payment = paymentMiddleware(PAY_TO, {
