@@ -14,24 +14,25 @@ const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 const facilitator = undefined;
 
 // x402 payment middleware
+// Using Base Sepolia testnet for now
 const payment = paymentMiddleware(PAY_TO, {
   "GET /api/search": {
     price: "$0.01",
-    network: "eip155:8453",
+    network: "eip155:84532",
     config: {
       description: "Web search via Brave API - returns title, url, and snippet"
     }
   },
   "GET /api/fetch": {
     price: "$0.02",
-    network: "eip155:8453", 
+    network: "eip155:84532", 
     config: {
       description: "Fetch and extract readable content from any URL"
     }
   },
   "GET /api/analyze-github": {
     price: "$0.05",
-    network: "eip155:8453",
+    network: "eip155:84532",
     config: {
       description: "Deep-dive analysis of GitHub projects - architecture, community, competitive landscape"
     }
