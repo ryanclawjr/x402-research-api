@@ -1,7 +1,6 @@
 const express = require("express");
 const { paymentMiddleware } = require("x402-express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(express.json());
@@ -10,34 +9,16 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// Get CDP API key from environment (format: "name.secret")
+// Get CDP API key from environment
 const CDP_API_KEY = process.env.CDP_API_KEY;
 
-// Create JWT from CDP API key
-async function createCDPToken() {
-  if (!CDP_API_KEY) return {};
-  
-  const parts = CDP_API_KEY.split('.');
-  if (parts.length !== 2) {
-    // If not name.secret format, try as raw bearer
-    return { Authorization: `Bearer ${CDP_API_KEY}` };
-  }
-  
-  const [name, secret] = parts;
-  // Sign JWT with the secret as the key
-  const token = jwt.sign({ sub: name }, secret, { 
-    algorithm: 'HS256', 
-    expiresIn: '1h' 
-  });
-  return { Authorization: `Bearer ${token}` };
-}
-
 // x402 facilitator - CDP for mainnet
+// Use raw key as bearer token
 const facilitator = CDP_API_KEY ? {
   url: "https://api.cdp.coinbase.com/platform",
   createAuthHeaders: async () => {
-    const token = await createCDPToken();
-    return { verify: token, settle: token };
+    const headers = { "Authorization": `Bearer ${CDP_API_KEY}` };
+    return { verify: headers, settle: headers };
   }
 } : undefined;
 
