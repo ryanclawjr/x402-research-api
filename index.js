@@ -14,8 +14,10 @@ const CDP_API_KEY = process.env.CDP_API_KEY;
 
 // x402 facilitator configuration
 const facilitator = CDP_API_KEY ? {
+  url: "https://x402.org/facilitator",
   createAuthHeaders: async () => ({
-    "x-cdp-api-key": CDP_API_KEY
+    verify: { "x-cdp-api-key": CDP_API_KEY },
+    settle: { "x-cdp-api-key": CDP_API_KEY }
   })
 } : undefined;
 
