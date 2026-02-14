@@ -3,7 +3,6 @@ import cors from "cors";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
-import { facilitator } from "@coinbase/x402";
 
 const app = express();
 app.use(express.json());
@@ -12,8 +11,10 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// Use CDP facilitator for mainnet
-const facilitatorClient = new HTTPFacilitatorClient(facilitator);
+// Use CDP mainnet facilitator directly
+const facilitatorClient = new HTTPFacilitatorClient({
+  url: "https://api.cdp.coinbase.com/platform/v2/x402"
+});
 
 // Create resource server and register EVM scheme for Base mainnet
 const server = new x402ResourceServer(facilitatorClient)
@@ -65,7 +66,7 @@ app.use(payment);
 app.get("/", (req, res) => {
   res.json({ 
     service: "RyanClaw Research API",
-    version: "6.0.0",
+    version: "6.1.0",
     status: "paid-mode",
     paymentAddress: PAY_TO,
     network: "eip155:8453 (Base mainnet)",
