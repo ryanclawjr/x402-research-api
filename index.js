@@ -9,18 +9,9 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// CDP facilitator for mainnet - CORRECT URL
-const facilitator = {
-  url: "https://api.cdp.coinbase.com/platform/v2/x402",
-  createAuthHeaders: async () => {
-    const CDP_KEY = process.env.CDP_API_KEY;
-    if (!CDP_KEY) return {};
-    return {
-      verify: { "Authorization": `Bearer ${CDP_KEY}` },
-      settle: { "Authorization": `Bearer ${CDP_KEY}` }
-    };
-  }
-};
+// Use default x402 facilitator (no explicit config)
+// This lets the x402-express library handle facilitator negotiation
+const facilitator = undefined;
 
 // x402 payment middleware
 const payment = paymentMiddleware(PAY_TO, {
