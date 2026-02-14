@@ -3,7 +3,6 @@ import cors from "cors";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
-import { facilitator } from "@coinbase/x402";
 
 const app = express();
 app.use(express.json());
@@ -12,25 +11,27 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// Create facilitator client using CDP's facilitator (handles auth automatically)
-const facilitatorClient = new HTTPFacilitatorClient(facilitator);
+// Use testnet facilitator first (lighter weight)
+const facilitatorClient = new HTTPFacilitatorClient({
+  url: "https://www.x402.org/facilitator"
+});
 
-// Create resource server and register EVM scheme for Base mainnet
+// Create resource server and register EVM scheme for Base Sepolia (testnet)
 const server = new x402ResourceServer(facilitatorClient)
-  .register("eip155:8453", new ExactEvmScheme());
+  .register("eip155:84532", new ExactEvmScheme());
 
-// x402 payment middleware - v2 format with CDP facilitator
+// x402 payment middleware - testnet
 const payment = paymentMiddleware({
   "GET /api/search": {
     accepts: [
       {
         scheme: "exact",
         price: "$0.01",
-        network: "eip155:8453",
+        network: "eip155:84532",
         payTo: PAY_TO
       }
     ],
-    description: "Web search via Brave API - returns title, url, and snippet",
+    description: "Web search via Brave API",
     mimeType: "application/json"
   },
   "GET /api/fetch": {
@@ -38,7 +39,7 @@ const payment = paymentMiddleware({
       {
         scheme: "exact",
         price: "$0.02",
-        network: "eip155:8453",
+        network: "eip155:84532",
         payTo: PAY_TO
       }
     ],
@@ -50,7 +51,7 @@ const payment = paymentMiddleware({
       {
         scheme: "exact",
         price: "$0.05",
-        network: "eip155:8453",
+        network: "eip155:84532",
         payTo: PAY_TO
       }
     ],
@@ -65,10 +66,10 @@ app.use(payment);
 app.get("/", (req, res) => {
   res.json({ 
     service: "RyanClaw Research API",
-    version: "4.0.0",
+    version: "5.0.0",
     status: "paid-mode",
     paymentAddress: PAY_TO,
-    network: "eip155:8453 (Base mainnet)",
+    network: "eip155:84532 (Base Sepolia testnet)",
     endpoints: {
       "/api/search": "Web search ($0.01)",
       "/api/fetch": "URL content extraction ($0.02)",
@@ -123,7 +124,6 @@ app.get("/api/fetch", async (req, res) => {
     });
     const text = await response.text();
     
-    // Simple extraction - get text content
     const extracted = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
       .replace(/<[^>]+>/g, " ")
@@ -145,19 +145,16 @@ app.get("/api/analyze-github", async (req, res) => {
   }
 
   try {
-    // Get repo info
     const repoRes = await fetch(`https://api.github.com/repos/${repo}`, {
       headers: { "User-Agent": "RyanClaw" }
     });
     const repoData = await repoRes.json();
 
-    // Get languages
     const langRes = await fetch(`https://api.github.com/repos/${repo}/languages`, {
       headers: { "User-Agent": "RyanClaw" }
     });
     const langData = await langRes.json();
 
-    // Get recent commits
     const commitsRes = await fetch(`https://api.github.com/repos/${repo}/commits?per_page=5`, {
       headers: { "User-Agent": "RyanClaw" }
     });
@@ -194,5 +191,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`RyanClaw Research API running on port ${PORT}`);
   console.log(`Payment address: ${PAY_TO}`);
-  console.log(`Network: Base mainnet (eip155:8453)`);
+  console.log(`Network: Base Sepolia testnet (eip155:84532)`);
 });
