@@ -3,6 +3,7 @@ import cors from "cors";
 import { paymentMiddleware, x402ResourceServer } from "@x402/express";
 import { ExactEvmScheme } from "@x402/evm/exact/server";
 import { HTTPFacilitatorClient } from "@x402/core/server";
+import { facilitator } from "@coinbase/x402";
 
 const app = express();
 app.use(express.json());
@@ -11,23 +12,21 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// Use testnet facilitator first (lighter weight)
-const facilitatorClient = new HTTPFacilitatorClient({
-  url: "https://www.x402.org/facilitator"
-});
+// Use CDP facilitator for mainnet
+const facilitatorClient = new HTTPFacilitatorClient(facilitator);
 
-// Create resource server and register EVM scheme for Base Sepolia (testnet)
+// Create resource server and register EVM scheme for Base mainnet
 const server = new x402ResourceServer(facilitatorClient)
-  .register("eip155:84532", new ExactEvmScheme());
+  .register("eip155:8453", new ExactEvmScheme());
 
-// x402 payment middleware - testnet
+// x402 payment middleware - MAINNET
 const payment = paymentMiddleware({
   "GET /api/search": {
     accepts: [
       {
         scheme: "exact",
         price: "$0.01",
-        network: "eip155:84532",
+        network: "eip155:8453",
         payTo: PAY_TO
       }
     ],
@@ -39,7 +38,7 @@ const payment = paymentMiddleware({
       {
         scheme: "exact",
         price: "$0.02",
-        network: "eip155:84532",
+        network: "eip155:8453",
         payTo: PAY_TO
       }
     ],
@@ -51,7 +50,7 @@ const payment = paymentMiddleware({
       {
         scheme: "exact",
         price: "$0.05",
-        network: "eip155:84532",
+        network: "eip155:8453",
         payTo: PAY_TO
       }
     ],
@@ -66,10 +65,10 @@ app.use(payment);
 app.get("/", (req, res) => {
   res.json({ 
     service: "RyanClaw Research API",
-    version: "5.0.0",
+    version: "6.0.0",
     status: "paid-mode",
     paymentAddress: PAY_TO,
-    network: "eip155:84532 (Base Sepolia testnet)",
+    network: "eip155:8453 (Base mainnet)",
     endpoints: {
       "/api/search": "Web search ($0.01)",
       "/api/fetch": "URL content extraction ($0.02)",
@@ -191,5 +190,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`RyanClaw Research API running on port ${PORT}`);
   console.log(`Payment address: ${PAY_TO}`);
-  console.log(`Network: Base Sepolia testnet (eip155:84532)`);
+  console.log(`Network: Base mainnet (eip155:8453)`);
 });
