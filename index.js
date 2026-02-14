@@ -1,5 +1,5 @@
 const express = require("express");
-const { paymentMiddleware } = require("x402-express");
+const { paymentMiddleware } = require("@x402/express");
 const cors = require("cors");
 
 const app = express();
