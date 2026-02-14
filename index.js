@@ -1,20 +1,78 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import { paymentMiddleware, x402ResourceServer } from "@x402/express";
+import { ExactEvmScheme } from "@x402/evm/exact/server";
+import { HTTPFacilitatorClient } from "@x402/core/server";
+import { facilitator } from "@coinbase/x402";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+// My payment address
+const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
+
+// Create facilitator client using CDP's facilitator (handles auth automatically)
+const facilitatorClient = new HTTPFacilitatorClient(facilitator);
+
+// Create resource server and register EVM scheme for Base mainnet
+const server = new x402ResourceServer(facilitatorClient)
+  .register("eip155:8453", new ExactEvmScheme());
+
+// x402 payment middleware - v2 format with CDP facilitator
+const payment = paymentMiddleware({
+  "GET /api/search": {
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.01",
+        network: "eip155:8453",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Web search via Brave API - returns title, url, and snippet",
+    mimeType: "application/json"
+  },
+  "GET /api/fetch": {
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.02",
+        network: "eip155:8453",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Fetch and extract readable content from any URL",
+    mimeType: "application/json"
+  },
+  "GET /api/analyze-github": {
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.05",
+        network: "eip155:8453",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Deep-dive analysis of GitHub projects",
+    mimeType: "application/json"
+  }
+}, server);
+
+app.use(payment);
+
 // Health check - free
 app.get("/", (req, res) => {
   res.json({ 
     service: "RyanClaw Research API",
-    version: "3.0.0",
-    status: "free-mode",
+    version: "4.0.0",
+    status: "paid-mode",
+    paymentAddress: PAY_TO,
+    network: "eip155:8453 (Base mainnet)",
     endpoints: {
-      "/api/search": "Web search (free)",
-      "/api/fetch": "URL content extraction (free)",
-      "/api/analyze-github": "GitHub analysis (free)"
+      "/api/search": "Web search ($0.01)",
+      "/api/fetch": "URL content extraction ($0.02)",
+      "/api/analyze-github": "GitHub analysis ($0.05)"
     }
   });
 });
@@ -93,7 +151,7 @@ app.get("/api/analyze-github", async (req, res) => {
     });
     const repoData = await repoRes.json();
 
-    // Get stars over time (approximation via languages)
+    // Get languages
     const langRes = await fetch(`https://api.github.com/repos/${repo}/languages`, {
       headers: { "User-Agent": "RyanClaw" }
     });
@@ -135,5 +193,6 @@ app.get("/api/analyze-github", async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`RyanClaw Research API running on port ${PORT}`);
-  console.log(`Status: FREE MODE (no payments)`);
+  console.log(`Payment address: ${PAY_TO}`);
+  console.log(`Network: Base mainnet (eip155:8453)`);
 });
