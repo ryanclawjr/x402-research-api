@@ -1,5 +1,7 @@
 const express = require("express");
-const { paymentMiddleware } = require("@x402/express");
+const { paymentMiddleware, x402ResourceServer } = require("@x402/express");
+const { ExactEvmScheme } = require("@x402/evm/exact/server");
+const { HTTPFacilitatorClient } = require("@x402/core/server");
 const cors = require("cors");
 
 const app = express();
@@ -9,35 +11,54 @@ app.use(cors());
 // My payment address
 const PAY_TO = "0x71f08aEfe062d28c7AD37344dC0D64e0adF8941E";
 
-// Use default x402 facilitator (no explicit config)
-// This lets the x402-express library handle facilitator negotiation
-const facilitator = undefined;
+// Create facilitator client - use testnet for now
+const facilitatorClient = new HTTPFacilitatorClient({
+  url: "https://www.x402.org/facilitator"
+});
 
-// x402 payment middleware
-// Using Base Sepolia testnet for now
-const payment = paymentMiddleware(PAY_TO, {
+// Create resource server and register EVM scheme
+const server = new x402ResourceServer(facilitatorClient)
+  .register("eip155:84532", new ExactEvmScheme()); // Base Sepolia
+
+// x402 payment middleware - v2 format
+const payment = paymentMiddleware({
   "GET /api/search": {
-    price: "$0.01",
-    network: "eip155:84532",
-    config: {
-      description: "Web search via Brave API - returns title, url, and snippet"
-    }
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.01",
+        network: "eip155:84532",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Web search via Brave API - returns title, url, and snippet",
+    mimeType: "application/json"
   },
   "GET /api/fetch": {
-    price: "$0.02",
-    network: "eip155:84532", 
-    config: {
-      description: "Fetch and extract readable content from any URL"
-    }
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.02",
+        network: "eip155:84532",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Fetch and extract readable content from any URL",
+    mimeType: "application/json"
   },
   "GET /api/analyze-github": {
-    price: "$0.05",
-    network: "eip155:84532",
-    config: {
-      description: "Deep-dive analysis of GitHub projects - architecture, community, competitive landscape"
-    }
+    accepts: [
+      {
+        scheme: "exact",
+        price: "$0.05",
+        network: "eip155:84532",
+        payTo: PAY_TO
+      }
+    ],
+    description: "Deep-dive analysis of GitHub projects",
+    mimeType: "application/json"
   }
-}, facilitator);
+}, server);
 
 app.use(payment);
 
@@ -45,7 +66,7 @@ app.use(payment);
 app.get("/", (req, res) => {
   res.json({ 
     service: "RyanClaw Research API",
-    version: "1.0.0",
+    version: "2.0.0",
     endpoints: {
       "/api/search": "Web search ($0.01)",
       "/api/fetch": "URL content extraction ($0.02)",

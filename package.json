@@ -1,6 +1,6 @@
 {
   "name": "ryanclaw-research-api",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "build": "npm install",
@@ -9,7 +9,9 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "@x402/express": "^2.0.0"
+    "@x402/core": "^2.0.0",
+    "@x402/express": "^2.0.0",
+    "@x402/evm": "^2.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
